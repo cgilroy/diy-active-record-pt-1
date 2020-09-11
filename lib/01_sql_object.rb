@@ -4,7 +4,15 @@ require 'active_support/inflector'
 # of this project. It was only a warm up.
 class SQLObject
   def self.columns
-    # ...
+    return @columns if !@columns.nil?
+    data = DBConnection.execute2(<<-SQL)
+      SELECT
+        *
+      FROM
+        #{self.table_name}
+    SQL
+    columns = data[0].map(&:to_sym)
+    @columns = columns
   end
 
   def self.finalize!
