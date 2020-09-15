@@ -31,15 +31,32 @@ class SQLObject
   end
 
   def self.all
-    # ...
+    data = DBConnection.execute(<<-SQL)
+      SELECT
+        #{table_name}.*
+      FROM
+        #{table_name}
+    SQL
+    parse_all(data)
   end
 
   def self.parse_all(results)
-    # ...
+    results.map do |result|
+      self.new(result)
+    end
   end
 
   def self.find(id)
-    # ...
+    data = DBConnection.execute(<<-SQL)
+      SELECT
+        #{table_name}.*
+      FROM
+        #{table_name}
+      WHERE
+        #{table_name}.id = #{id}
+      LIMIT 1
+    SQL
+    parse_all(data)[0]
   end
 
   def initialize(params = {})
@@ -59,11 +76,23 @@ class SQLObject
   end
 
   def attribute_values
-    # ...
+    self.class.columns.map do |col|
+      self.send(col)
+    end
   end
 
   def insert
-    # ...
+    columns = self.class.columns
+    col_names = columns.join(',')
+    question_marks = columns.count.times { [] << "?" }
+
+    data = DBConnection.execute(<<-SQL,col_names,*attribute_values.drop(1))
+      INSERT INTO
+        #{self.class.table_name} (?)
+      VALUES
+        (#{question_marks})
+    SQL
+    data
   end
 
   def update
