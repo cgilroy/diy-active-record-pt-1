@@ -1,5 +1,6 @@
 require_relative 'db_connection'
 require 'active_support/inflector'
+require 'byebug'
 # NB: the attr_accessor we wrote in phase 0 is NOT used in the rest
 # of this project. It was only a warm up.
 class SQLObject
@@ -83,16 +84,17 @@ class SQLObject
 
   def insert
     columns = self.class.columns
-    col_names = columns.join(',')
-    question_marks = columns.count.times { [] << "?" }
-
-    data = DBConnection.execute(<<-SQL,col_names,*attribute_values.drop(1))
+    col_names = columns.join(", ")
+    question_marks = []
+    columns.length.times { question_marks << "?" }
+    # debugger
+    data = DBConnection.execute(<<-SQL,*attribute_values)
       INSERT INTO
-        #{self.class.table_name} (?)
+        #{self.class.table_name} (#{col_names})
       VALUES
-        (#{question_marks})
+        (#{question_marks.join(", ")})
     SQL
-    data
+    self.id = DBConnection.last_insert_row_id
   end
 
   def update
