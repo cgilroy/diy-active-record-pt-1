@@ -98,7 +98,16 @@ class SQLObject
   end
 
   def update
-    # ...
+    col_string = self.class.columns.map {|col| col.to_s + " = ?"}.join(", ")
+    data = DBConnection.execute(<<-SQL,*attribute_values, self.id)
+      UPDATE
+        #{self.class.table_name}
+      SET
+        #{col_string}
+      WHERE
+        id = ?
+    SQL
+    
   end
 
   def save
