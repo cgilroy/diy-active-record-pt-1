@@ -107,10 +107,14 @@ class SQLObject
       WHERE
         id = ?
     SQL
-    
+
   end
 
   def save
-    # ...
+    if self.id.nil?
+      insert
+    else
+      update
+    end
   end
 end
